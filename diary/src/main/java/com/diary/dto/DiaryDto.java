@@ -1,10 +1,14 @@
 package com.diary.dto;
 import com.diary.entity.Diary;
+import jakarta.validation.constraints.NotBlank;
+
 public class DiaryDto {
 
     private Long userId;
     private String email;
+    @NotBlank(message = "Title cannot be empty")
     private String title;
+    @NotBlank(message = "Content cannot be empty")
     private String content;
 
     public String getEmail() {

@@ -1,8 +1,13 @@
 package com.diary.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public class UserResponseDto {
         private Long id;
+        @NotBlank(message = "Username cannot be empty")
         private String username;
+        @Email(message = "Invalid email format")
         private String email;
 
     public Long getId() {
