@@ -2,8 +2,10 @@ package com.diary.service;
 
 import com.diary.dto.UserResponseDto;
 import com.diary.entity.User;
+import com.diary.exception.ResourceNotFoundException;
 import com.diary.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,7 @@ public class UserService {
 
     public boolean login(String email, String rawPassword){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new  ResourceNotFoundException("User not found"));
 
         return passwordEncoder.matches(rawPassword, user.getPassword());
     }
@@ -29,7 +31,7 @@ public class UserService {
 
     public UserResponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         UserResponseDto dto = new UserResponseDto();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
@@ -39,7 +41,7 @@ public class UserService {
 
     public UserResponseDto findByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new  ResourceNotFoundException("User not found"));
         UserResponseDto userResponseDto = new UserResponseDto();
         userResponseDto.setUsername(user.getUsername());
         userResponseDto.setEmail(user.getEmail());
@@ -50,7 +52,7 @@ public class UserService {
 
     public User updateUser(Long id, User updateData) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new  ResourceNotFoundException("User not found"));
         existingUser.setUsername(updateData.getUsername());
         existingUser.setEmail(updateData.getEmail());
         if (updateData.getPassword() != null && !updateData.getPassword().isEmpty()) {
@@ -61,11 +63,10 @@ public class UserService {
 
     public void deleteUser(Long id, String currentUserEmail) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new RuntimeException("User not found :("));
+                .orElseThrow(() -> new  ResourceNotFoundException("User not found :("));
         if (!currentUser.getId().equals(id)) {
-            throw new RuntimeException("You can't delete other users!");
+            throw new AccessDeniedException("You can't delete other users!");
         }
-
         userRepository.deleteById(id);
     }
 }

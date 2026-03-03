@@ -2,10 +2,13 @@ package com.diary.service;
 import com.diary.dto.DiaryDto;
 import com.diary.entity.Diary;
 import com.diary.entity.User;
+import com.diary.exception.ResourceNotFoundException;
 import com.diary.repository.DiaryRepository;
 import com.diary.repository.UserRepository;
 import com.diary.security.SecurityUtil;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,7 +22,7 @@ public class DiaryService {
     private UserRepository userRepository;
 
     public Diary createDiary(String email, DiaryDto diaryDto){
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found :<"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found :<"));
         Diary diary = new Diary();
         diary.setTitle(diaryDto.getTitle());
         diary.setContent(diaryDto.getContent());
@@ -28,16 +31,17 @@ public class DiaryService {
 
         return diaryRepository.save(diary);
     }
-    public Optional<Diary> getDiary(Long id){
-        return diaryRepository.findById(id);
+    public Diary getDiary(Long id){
+        return diaryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Diary not found"));
     }
+
     public List<Diary> getDiariesByUserEmail() {
         String email = SecurityUtil.getCurrentUserEmail();
 
         return diaryRepository.findByUserEmail(email);
     }
     public Diary updateDiary(Long id, DiaryDto updatedDiary, String authenticatedUserEmail){
-        Diary existing = diaryRepository.findById(id).orElseThrow(() -> new RuntimeException("Diary not found :<"));;
+        Diary existing = diaryRepository.findById(id).orElseThrow(() -> new  ResourceNotFoundException("Diary not found :<"));;
         if (!existing.getUser().getEmail().equals(authenticatedUserEmail)) {
             throw new RuntimeException("Access Denied :(");
         }
@@ -45,12 +49,12 @@ public class DiaryService {
         existing.setContent(updatedDiary.getContent());
         return diaryRepository.save(existing);
     }
-    public void deleteDiary(Long id, String name) {
+    public void deleteDiary(Long id, String name){
         Diary diary = diaryRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Diary not found :("));
+                .orElseThrow(()-> new  ResourceNotFoundException("Diary not found :("));
         String email = SecurityUtil.getCurrentUserEmail();
         if (!diary.getUser().getEmail().equals(email)) {
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
         diaryRepository.delete(diary);
     }

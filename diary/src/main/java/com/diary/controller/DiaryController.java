@@ -5,6 +5,7 @@ import com.diary.service.DiaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -23,7 +24,7 @@ public class DiaryController {
         return diaryService.createDiary(loggedInUser, request);
     }
     @GetMapping("/id/{id}")
-    public Optional<Diary> getDiary(@PathVariable Long id){
+    public Diary getDiary(@PathVariable Long id){
         return diaryService.getDiary(id);
     }
 
@@ -42,7 +43,7 @@ public class DiaryController {
         try {
             diaryService.deleteDiary(id, principal.getName());
             return ResponseEntity.ok("Deleted successfully :D");
-        } catch (RuntimeException e) {
+        } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
 
